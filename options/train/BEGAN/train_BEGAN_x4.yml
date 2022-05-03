@@ -1,0 +1,169 @@
+# general settings
+name: 032_BEGAN_RRDB_x4_f64b4_l0g1-2_gamma1_DIV2K
+model_type: BEGANModel
+scale: 4
+num_gpu: 1  # set num_gpu: 0 for cpu mode
+manual_seed: 0
+# -opt ../options/train/BEGAN/train_BEGAN_x4.yml
+# dataset and data loader settings
+datasets:
+  train:
+    name: DIV2K
+    type: PairedImageDataset
+#    dataroot_gt: datasets/DIV2K/DIV2K_train_HR_sub
+#    dataroot_lq: datasets/DIV2K/DIV2K_train_LR_bicubic/X2_sub
+    # (for lmdb)
+    dataroot_gt: /media/sdu512/f55757cf-e187-4f1a-8019-97729fc66f7d/zzc/dataset/DIV2K/DIV2K_train_HR_sub.lmdb
+    dataroot_lq: /media/sdu512/f55757cf-e187-4f1a-8019-97729fc66f7d/zzc/dataset/DIV2K/DIV2K_train_LR_bicubic_X4_sub.lmdb
+    filename_tmpl: '{}'
+    io_backend:
+      # type: disk
+      # (for lmdb)
+      type: lmdb
+
+    gt_size: 384
+    use_flip: true
+    use_rot: true
+
+    # data loader
+    use_shuffle: true
+    num_worker_per_gpu: 6
+    batch_size_per_gpu: 4
+    dataset_enlarge_ratio: 2
+    prefetch_mode: ~
+
+  val:
+    name: Set14
+    type: PairedImageDataset
+    dataroot_gt: /media/sdu512/f55757cf-e187-4f1a-8019-97729fc66f7d/zzc/dataset/SR/Set14/LRbicx4/HR/x12
+    dataroot_lq: /media/sdu512/f55757cf-e187-4f1a-8019-97729fc66f7d/zzc/dataset/SR/Set14/LRbicx4/LR/x4
+    io_backend:
+      type: disk
+
+
+# network structures
+network_g:
+  type: RRDBNet
+  num_in_ch: 3
+  num_out_ch: 3
+  num_feat: 64
+  num_block: 23
+
+network_d:
+#  type: VGGStyleDiscriminator128
+#  num_in_ch: 3
+#  num_feat: 64
+  type: UNet
+  input_nc: 3
+  output_nc: 3
+  nf: 64
+
+# path
+path:
+  pretrain_network_g: experiments/022_RRDB_x4_b2_l0_DIV2K_rand0/models/net_g_75000.pth
+  #pretrain_network_g: ~
+  strict_load: true
+  #resume_state: /media/sdu512/f55757cf-e187-4f1a-8019-97729fc66f7d/zzc/code/BasicSR-1031/experiments/025_BEGAN_RRDB_x4_f64b4_l0g5-3_DIV2K/training_states/200000.state
+  #resume_state: ~
+
+# training settings
+train:
+  optim_g:
+    type: Adam
+    lr: !!float 1e-4
+    weight_decay: 0
+    betas: [0.9, 0.99]
+  optim_d:
+    type: Adam
+    lr: !!float 1e-4
+    weight_decay: 0
+    betas: [0.9, 0.99]
+
+#  scheduler:
+#    type: MultiStepLR
+#    milestones: [50000, 100000, 200000, 300000]
+#    gamma: 0.5
+#  scheduler:
+#    type: CosineAnnealingRestartLR
+#    periods: [ 100000, 100000, 100000, 100000 ]
+#    restart_weights: [ 1, 1, 1, 1 ]
+#    eta_min: !!float 1e-7
+  scheduler:
+    type: MultiStepLR
+    milestones: [ 200000 ]
+    gamma: 0.5
+
+  total_iter: 300000
+  warmup_iter: -1  # no warm up
+
+  #BEGAN
+  gamma: 1
+  lambda_k: 0.001
+  init_k: !!float 0
+
+  # losses
+  pixel_opt:
+    type: L1Loss
+    loss_weight: !!float 1.0
+    reduction: mean
+#  perceptual_opt:
+#    type: PerceptualLoss
+#    layer_weights:
+#      'conv5_4': 1  # before relu
+#    vgg_type: vgg19
+#    use_input_norm: true
+#    perceptual_weight: 1.0
+#    style_weight: 0
+#    norm_img: false
+#    criterion: l1
+  lpips_opt:
+    loss_weight: !!float 0
+  gan_opt:
+    type: L1Loss
+    #gan_type: lsgan
+    loss_weight: !!float 1e-2
+  wavelet_opt:
+    type: WaveletLoss
+    loss_weight_D: !!float 0
+    loss_weight_G: !!float 0
+    reduction: mean
+  texture_opt:
+    type: TextureLoss
+    loss_weight_D: !!float 0
+    loss_weight_G: !!float 0
+    reduction: mean
+  gau_lap_opt:
+    type: GauLapLoss
+    loss_weight_D: !!float 0
+    loss_weight_G: !!float 0
+    reduction: mean
+
+  net_d_iters: 1
+  net_d_init_iters: 0
+
+# validation settings
+val:
+  val_freq: !!float 5e3
+  save_img: true
+
+  metrics:
+    psnr: # metric name, can be arbitrary
+      type: calculate_psnr
+      crop_border: 4
+      test_y_channel: false
+    lpips:
+      type: calculate_lpips
+
+# logging settings
+logger:
+  print_freq: 100
+  save_checkpoint_freq: !!float 5e3
+  use_tb_logger: true
+  wandb:
+    project: ~
+    resume_id: ~
+
+# dist training settings
+dist_params:
+  backend: nccl
+  port: 29500

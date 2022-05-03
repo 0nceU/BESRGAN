@@ -1,0 +1,128 @@
+# TODO
+# general settings
+name: 022_RRDB_x4_b2_l0_DIV2K_rand0
+model_type: BESRModel
+scale: 4
+num_gpu: 1  # set num_gpu: 0 for cpu mode
+manual_seed: 0
+# -opt ../options/train/WAN/train_WAN_x4.yml
+# dataset and data loader settings
+datasets:
+  train:
+    name: DIV2K
+    type: PairedImageDataset
+#    dataroot_gt: datasets/DIV2K/DIV2K_train_HR_sub
+#    dataroot_lq: datasets/DIV2K/DIV2K_train_LR_bicubic/X2_sub
+    # (for lmdb)
+    dataroot_gt: /media/sdu512/f55757cf-e187-4f1a-8019-97729fc66f7d/zzc/dataset/DIV2K/DIV2K_train_HR_sub.lmdb
+    dataroot_lq: /media/sdu512/f55757cf-e187-4f1a-8019-97729fc66f7d/zzc/dataset/DIV2K/DIV2K_train_LR_bicubic_X4_sub.lmdb
+    filename_tmpl: '{}'
+    io_backend:
+      # type: disk
+      # (for lmdb)
+      type: lmdb
+
+    gt_size: 480
+    use_flip: true
+    use_rot: true
+
+    # data loader
+    use_shuffle: true
+    num_worker_per_gpu: 6
+    batch_size_per_gpu: 2
+    dataset_enlarge_ratio: 1
+    prefetch_mode: ~
+
+  val:
+    name: Set14
+    type: PairedImageDataset
+    dataroot_gt: /media/sdu512/f55757cf-e187-4f1a-8019-97729fc66f7d/zzc/dataset/SR/Set14/LRbicx4/HR/x12
+    dataroot_lq: /media/sdu512/f55757cf-e187-4f1a-8019-97729fc66f7d/zzc/dataset/SR/Set14/LRbicx4/LR/x4
+    io_backend:
+      type: disk
+
+# network structures
+#network_g:
+#  type: WAN
+#  num_in_ch: 3
+#  num_out_ch: 3
+#  num_feat: 64
+#  num_group: 10
+#  num_block: 10
+#  squeeze_factor: 16
+#  upscale: 4
+#  res_scale: 1
+#  img_range: 255.
+#  rgb_mean: [0.4488, 0.4371, 0.4040]
+#network_g:
+#  type: RCAN
+#  num_in_ch: 3
+#  num_out_ch: 3
+#  num_feat: 64
+#  num_group: 10
+#  num_block: 16
+#  squeeze_factor: 16
+#  upscale: 4
+#  res_scale: 1
+#  img_range: 255.
+#  rgb_mean: [0.4488, 0.4371, 0.4040]
+network_g:
+  type: RRDBNet
+  num_in_ch: 3
+  num_out_ch: 3
+  num_feat: 64
+  num_block: 23
+
+# path
+path:
+  #pretrain_network_g: /media/sdu512/f55757cf-e187-4f1a-8019-97729fc66f7d/zzc/code/BasicSR-1031/experiments/001_WANx4_b4_DIV2K_rand0/models/net_g_75000.pth
+  pretrain_network_g: ~
+  strict_load: true
+  #resume_state: /media/sdu512/f55757cf-e187-4f1a-8019-97729fc66f7d/zzc/code/BasicSR-1031/experiments/002_WANx4_b2_lpips11e-3_DIV2K_rand10/training_states/60000.state
+  resume_state: ~
+
+# training settings
+train:
+  optim_g:
+    type: Adam
+    lr: !!float 1e-4
+    weight_decay: 0
+    betas: [0.9, 0.99]
+
+  scheduler:
+    type: MultiStepLR
+    milestones: [200000]
+    gamma: 0.5
+
+  total_iter: 75000
+  warmup_iter: -1  # no warm up
+
+  # losses
+  pixel_opt:
+    type: L1Loss
+    loss_weight: 1.0
+    reduction: mean
+#  lpips_opt:
+#    loss_weight: !!float 0
+
+# validation settings
+val:
+  val_freq: !!float 5e3
+  save_img: true
+
+  metrics:
+    psnr: # metric name, can be arbitrary
+      type: calculate_psnr
+      crop_border: 2
+      test_y_channel: false
+    lpips:
+      type: calculate_lpips
+
+# logging settings
+logger:
+  print_freq: 100
+  save_checkpoint_freq: !!float 5e3
+  use_tb_logger: true
+  wandb:
+    project: ~
+    resume_id: ~

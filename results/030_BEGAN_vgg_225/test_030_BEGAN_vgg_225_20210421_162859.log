@@ -1,0 +1,117 @@
+2021-04-21 16:28:59,935 INFO: 
+                ____                _       _____  ____
+               / __ ) ____ _ _____ (_)_____/ ___/ / __ \
+              / __  |/ __ `// ___// // ___/\__ \ / /_/ /
+             / /_/ // /_/ /(__  )/ // /__ ___/ // _, _/
+            /_____/ \__,_//____//_/ \___//____//_/ |_|
+     ______                   __   __                 __      __
+    / ____/____   ____   ____/ /  / /   __  __ _____ / /__   / /
+   / / __ / __ \ / __ \ / __  /  / /   / / / // ___// //_/  / /
+  / /_/ // /_/ // /_/ // /_/ /  / /___/ /_/ // /__ / /<    /_/
+  \____/ \____/ \____/ \____/  /_____/\____/ \___//_/|_|  (_)
+    
+Version Information: 
+	BasicSR: 1.1.1+unknown
+	PyTorch: 1.5.1
+	TorchVision: 0.6.0a0+35d732a
+2021-04-21 16:28:59,936 INFO: 
+  name: 030_BEGAN_vgg_225
+  model_type: SRModel
+  scale: 4
+  num_gpu: 1
+  manual_seed: 0
+  datasets:[
+    test_1:[
+      name: Set5
+      type: PairedImageDataset
+      dataroot_gt: datasets/Set5/LRbicx4/HR/x12
+      dataroot_lq: datasets/Set5/LRbicx4/LR/x4
+      io_backend:[
+        type: disk
+      ]
+      phase: test
+      scale: 4
+    ]
+    test_2:[
+      name: Set14
+      type: PairedImageDataset
+      dataroot_gt: datasets/Set14/LRbicx4/HR/x12
+      dataroot_lq: datasets/Set14/LRbicx4/LR/x4
+      io_backend:[
+        type: disk
+      ]
+      phase: test
+      scale: 4
+    ]
+    test_3:[
+      name: DIV2K100
+      type: PairedImageDataset
+      dataroot_gt: datasets/DIV2K/DIV2K_valid_HR
+      dataroot_lq: datasets/DIV2K/DIV2K_valid_LR_bicubic/X4
+      filename_tmpl: {}x4
+      io_backend:[
+        type: disk
+      ]
+      phase: test
+      scale: 4
+    ]
+    test_4:[
+      name: BSD100
+      type: PairedImageDataset
+      dataroot_gt: datasets/BSD100/HR/x12
+      dataroot_lq: datasets/BSD100/LR/x4
+      io_backend:[
+        type: disk
+      ]
+      phase: test
+      scale: 4
+    ]
+  ]
+  network_g:[
+    type: RRDBNet
+    num_in_ch: 3
+    num_out_ch: 3
+    num_feat: 64
+    num_block: 23
+    num_grow_ch: 32
+  ]
+  path:[
+    pretrain_network_g: experiments/030_BEGAN_RRDB_x4_f64b2_l0g5-3_vgg_gamma1_DIV2K/models/net_g_225000.pth
+    strict_load_g: True
+    root: /media/sdu512/f55757cf-e187-4f1a-8019-97729fc66f7d/zzc/code/BasicSR-1031
+    results_root: /media/sdu512/f55757cf-e187-4f1a-8019-97729fc66f7d/zzc/code/BasicSR-1031/results/030_BEGAN_vgg_225
+    log: /media/sdu512/f55757cf-e187-4f1a-8019-97729fc66f7d/zzc/code/BasicSR-1031/results/030_BEGAN_vgg_225
+    visualization: /media/sdu512/f55757cf-e187-4f1a-8019-97729fc66f7d/zzc/code/BasicSR-1031/results/030_BEGAN_vgg_225/visualization
+  ]
+  val:[
+    save_img: True
+    suffix: None
+    metrics:[
+      psnr:[
+        type: calculate_psnr
+        crop_border: 4
+        test_y_channel: False
+      ]
+      ssim:[
+        type: calculate_ssim
+        crop_border: 4
+        test_y_channel: False
+      ]
+      lpips:[
+        type: calculate_lpips
+      ]
+    ]
+  ]
+  is_train: False
+  dist: False
+  rank: 0
+  world_size: 1
+
+2021-04-21 16:28:59,936 INFO: Dataset PairedImageDataset - Set5 is created.
+2021-04-21 16:28:59,936 INFO: Number of test images in Set5: 5
+2021-04-21 16:28:59,937 INFO: Dataset PairedImageDataset - Set14 is created.
+2021-04-21 16:28:59,937 INFO: Number of test images in Set14: 14
+2021-04-21 16:28:59,942 INFO: Dataset PairedImageDataset - DIV2K100 is created.
+2021-04-21 16:28:59,942 INFO: Number of test images in DIV2K100: 100
+2021-04-21 16:28:59,946 INFO: Dataset PairedImageDataset - BSD100 is created.
+2021-04-21 16:28:59,946 INFO: Number of test images in BSD100: 100

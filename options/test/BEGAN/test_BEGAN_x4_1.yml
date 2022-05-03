@@ -1,0 +1,68 @@
+name: 003_BEGAN_3
+model_type: SRModel
+scale: 4
+num_gpu: 1  # set num_gpu: 0 for cpu mode
+manual_seed: 0
+
+datasets:
+  test_1:  # the 1st test dataset
+    name: U100
+    type: PairedImageDataset
+    dataroot_gt: datasets/U100/HR2
+    dataroot_lq: datasets/U100/LR2
+    io_backend:
+      type: disk
+
+#  test_1: # the 2st test dataset
+#    name: Set14
+#    type: PairedImageDataset
+#    dataroot_gt/datasets/Set14/LRbicx4/HR/x12
+#    dataroot_lq: /datasets/Set14/LRbicx4/LR/x4
+#    io_backend:
+#      type: disk
+
+
+
+
+# network structures
+#network_g:
+#  type: RCAN
+#  num_in_ch: 3
+#  num_out_ch: 3
+#  num_feat: 64
+#  num_group: 10
+#  num_block: 16
+#  squeeze_factor: 16
+#  upscale: 4
+#  res_scale: 1
+#  img_range: 255.
+#  rgb_mean: [0.4488, 0.4371, 0.4040]
+network_g:
+  type: RRDBNet
+  num_in_ch: 3
+  num_out_ch: 3
+  num_feat: 64
+  num_block: 23
+  num_grow_ch: 32
+
+# path
+path:
+  pretrain_network_g: experiments/030_BEGAN_RRDB_x4_f64b2_l0g5-3_vgg_gamma1_DIV2K/models/net_g_225000.pth
+  strict_load_g: true
+
+# validation settings
+val:
+  save_img: true
+  suffix: ~  # add suffix to saved images, if None, use exp name
+
+  metrics:
+    psnr: # metric name, can be arbitrary
+      type: calculate_psnr
+      crop_border: 4
+      test_y_channel: false
+    ssim:
+      type: calculate_ssim
+      crop_border: 4
+      test_y_channel: false
+    lpips:
+      type: calculate_lpips
